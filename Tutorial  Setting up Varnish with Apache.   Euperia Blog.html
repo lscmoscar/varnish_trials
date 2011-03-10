@@ -1,0 +1,406 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xml:lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+			<title>Tutorial: Setting up Varnish with Apache. | Euperia Blog</title>
+	
+	<!-- Basic Meta Data -->
+	<meta name="Copyright" content="Design is copyright 2008 - 2011 The Theme Foundry" />
+	<meta http-equiv="imagetoolbar" content="no" />
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	
+	<!-- Favicon -->
+	<link rel="shortcut icon" href="http://www.euperia.com/wp-content/themes/titan/images/favicon.ico" />
+
+	<!--Stylesheets-->
+	<link href="http://www.euperia.com/wp-content/themes/titan/style.css" type="text/css" media="screen" rel="stylesheet" />
+	<!--[if lt IE 8]>
+	<link rel="stylesheet" type="text/css" media="screen" href="http://www.euperia.com/wp-content/themes/titan/stylesheets/ie.css" />
+	<![endif]-->
+
+	<!--Scripts-->
+	<!--[if lte IE 7]>
+	<script type="text/javascript">
+	sfHover=function(){var sfEls=document.getElementById("nav").getElementsByTagName("LI");for(var i=0;i<sfEls.length;i++){sfEls[i].onmouseover=function(){this.className+=" sfhover";}
+	sfEls[i].onmouseout=function(){this.className=this.className.replace(new RegExp(" sfhover\\b"),"");}}}
+	if (window.attachEvent)window.attachEvent("onload",sfHover);
+	</script>
+	<![endif]-->
+
+	<!--WordPress-->
+	<link rel="alternate" type="application/rss+xml" title="Euperia Blog RSS Feed" href="http://www.euperia.com/feed/" />
+	<link rel="pingback" href="http://www.euperia.com/xmlrpc.php" />
+
+	<!--WP Hook-->
+		<link rel="alternate" type="application/rss+xml" title="Euperia Blog &raquo; Tutorial: Setting up Varnish with Apache. Comments Feed" href="http://www.euperia.com/linux/setting-up-varnish-with-apache-tutorial/feed/" />
+<script type='text/javascript' src='http://www.euperia.com/wp-includes/js/comment-reply.js?ver=20090102'></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://www.euperia.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://www.euperia.com/wp-includes/wlwmanifest.xml" /> 
+<link rel='index' title='Euperia Blog' href='http://www.euperia.com/' />
+<link rel='start' title='Upload files with ncftpput' href='http://www.euperia.com/linux/tools-and-utilities/upliad-files-with-ncftpput/' />
+<link rel='prev' title='Portsmouth Tilt Shifted' href='http://www.euperia.com/uncategorized/portsmouth-tilt-shifted/' />
+<link rel='next' title='Amazon Kindle &#8216;white screen of death&#8217; issue (and how to fix it)' href='http://www.euperia.com/tech-and-gadgets/amazon-kindle-white-screen-of-death-issue-and-how-to-fix-it/' />
+<meta name="generator" content="WordPress 3.0.4" />
+<link rel='shortlink' href='http://www.euperia.com/?p=299' />
+
+<!-- All in One SEO Pack 1.6.13.1 by Michael Torbert of Semper Fi Web Design[167,232] -->
+<meta name="description" content="Varnish is an HTTP accelerator designed for content-heavy dynamic web sites. Varnish was designed from the ground up as an HTTP accelerator. Here's how to set up varnish as a front end to Apache." />
+<meta name="keywords" content="varnish, apache, tutorial,apache,tutorial,linux" />
+<link rel="canonical" href="http://www.euperia.com/linux/setting-up-varnish-with-apache-tutorial/" />
+<!-- /all in one seo pack -->
+
+<link rel="stylesheet" href="http://www.euperia.com/wp-content/plugins/wp-syntax/wp-syntax.css" type="text/css" media="screen" />
+</head>
+<body class="single single-post postid-299">
+	<div class="skip-content"><a href="#content">Skip to content</a></div>
+	<div id="header" class="clear">
+		<div id="follow">
+			<div class="wrapper clear">
+				<dl>
+					<dt>Follow:</dt>
+					<dd><a class="rss" href="http://www.euperia.com/feed/">RSS</a></dd>
+															 <dd><a class="twitter" href="http://www.twitter.com/euperia">Twitter</a></dd>
+									</dl>
+			</div><!--end wrapper-->
+		</div><!--end follow-->
+		<div class="wrapper">
+			<div id="title"><a href="http://www.euperia.com">Euperia Blog</a></div>			<div id="description">
+				The personal site of Andrew McCombe, Website Engineer			</div><!--end description-->
+			<div id="navigation">
+				<ul id="nav">
+					<li class="page_item "><a href="http://www.euperia.com">Home</a></li>
+											<li class="page_item page-item-2"><a href="http://www.euperia.com/about/" title="About">About</a></li>
+																	<li class="cat-item cat-item-3"><a href="http://www.euperia.com/category/development/" title="View all posts filed under Development">Development</a>
+<ul class='children'>
+	<li class="cat-item cat-item-21"><a href="http://www.euperia.com/category/development/mysql/" title="View all posts filed under MySQL">MySQL</a>
+</li>
+	<li class="cat-item cat-item-4"><a href="http://www.euperia.com/category/development/php/" title="View all posts filed under PHP">PHP</a>
+	<ul class='children'>
+	<li class="cat-item cat-item-18"><a href="http://www.euperia.com/category/development/php/imagemagick/" title="View all posts filed under ImageMagick">ImageMagick</a>
+</li>
+	<li class="cat-item cat-item-17"><a href="http://www.euperia.com/category/development/php/zend-framework/" title="View all posts filed under Zend Framework">Zend Framework</a>
+</li>
+	</ul>
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-8"><a href="http://www.euperia.com/category/linux/" title="View all posts filed under Linux">Linux</a>
+<ul class='children'>
+	<li class="cat-item cat-item-9"><a href="http://www.euperia.com/category/linux/tools-and-utilities/" title="View all posts filed under Tools and utilities">Tools and utilities</a>
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-6"><a href="http://www.euperia.com/category/music/" title="View all posts filed under Music">Music</a>
+</li>
+	<li class="cat-item cat-item-40"><a href="http://www.euperia.com/category/tech-and-gadgets/" title="Articles about technology and gadgets.  From the Amazon Kindle to the Nintendo Wii, you&#039;ll find things about them here.">Tech and Gadgets</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://www.euperia.com/category/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a>
+</li>
+									</ul>
+			</div><!--end navigation-->
+		</div><!--end wrapper-->
+	</div><!--end header-->
+<div class="content-background">
+	<div class="wrapper">
+		<div class="notice"></div>
+		<div id="content">				<div id="post-299" class="post-299 post type-post hentry category-linux tag-apache tag-tutorial tag-varnish">
+			<div class="post-header">
+				<div class="tags"><span>Tags</span> <p><a href="http://www.euperia.com/tag/apache/" rel="tag">apache</a>, <a href="http://www.euperia.com/tag/tutorial/" rel="tag">tutorial</a>, <a href="http://www.euperia.com/tag/varnish/" rel="tag">varnish</a></p></div>
+				<h1>Tutorial: Setting up Varnish with Apache.</h1>
+				<div class="author">by Andrew McCombe on December 24th, 2010</div>
+			</div><!--end post header-->
+			<div class="entry clear">
+								<p>Varnish is an HTTP accelerator designed for content-heavy dynamic web sites. In contrast to other HTTP accelerators, such as Squid, which began life as a client-side cache, or Apache, which is primarily an origin server, Varnish was designed from the ground up as an HTTP accelerator.</p>
+<p>Here&#8217;s how to set up varnish as a front end to apache.<br />
+Tested on Ubuntu 10.04 (Lucid) Server LTS.<br />
+<br style="clear: both;" /><br />
+1. Install varnish:</p>
+<pre>sudo apt-get install varnish</pre>
+<p>2. Configure varnish to serve on 80 and fetch from 8008:</p>
+<pre>vim /etc/default/varnish
+
+DAEMON_OPTS="-a :80 \
+             -T localhost:6082 \
+             -f /etc/varnish/default.vcl \
+             -S /etc/varnish/secret \
+             -s file,/var/lib/varnish/$INSTANCE/varnish_storage.bin,1G</pre>
+<pre>vim /etc/varnish/default.vcl
+
+backend apache {
+        .host = "127.0.0.1";
+        .port = "8008";
+}
+acl purge {
+        "localhost";
+        "127.0.0.1";
+}
+sub vcl_recv {
+        // Strip cookies for static files:
+        if (req.url ~ "\.(jpg|jpeg|gif|png|ico|css|zip|tgz|gz|rar|bz2|pdf|txt|tar|wav|bmp|rtf|js|flv|swf|html|htm)$") {
+                unset req.http.Cookie;
+                return(lookup);
+        }
+        // Remove has_js and Google Analytics __* cookies.
+        set req.http.Cookie = regsuball(req.http.Cookie, "(^|;\s*)(__[a-z]+|has_js)=[^;]*", "");
+        // Remove a ";" prefix, if present.
+        set req.http.Cookie = regsub(req.http.Cookie, "^;\s*", "");
+        // Remove empty cookies.
+        if (req.http.Cookie ~ "^\s*$") {
+                unset req.http.Cookie;
+        }
+        if (req.request == "PURGE") {
+                if (!client.ip ~ purge) {
+                        error 405 "Not allowed.";
+                }
+                purge("req.url ~ " req.url " &amp;&amp; req.http.host == " req.http.host);
+                error 200 "Purged.";
+        }
+}
+sub vcl_hash {
+  if (req.http.Cookie) {
+    set req.hash += req.http.Cookie;
+  }
+}
+sub vcl_fetch {
+        // Strip cookies for static files:
+        if (req.url ~ "\.(jpg|jpeg|gif|png|ico|css|zip|tgz|gz|rar|bz2|pdf|txt|tar|wav|bmp|rtf|js|flv|swf|html|htm)$") {
+                unset beresp.http.set-cookie;
+        }
+        // Varnish determined the object was not cacheable
+        if (!beresp.cacheable) {
+                set beresp.http.X-Cacheable = "NO:Not Cacheable";
+        } elsif(req.http.Cookie ~"(UserID|_session)") {
+            // You don't wish to cache content for logged in users
+                set beresp.http.X-Cacheable = "NO:Got Session";
+                return(pass);
+        }  elsif ( beresp.http.Cache-Control ~ "private") {
+                 // You are respecting the Cache-Control=private header from the backend
+                set beresp.http.X-Cacheable = "NO:Cache-Control=private";
+                return(pass);
+        } elsif ( beresp.ttl &lt; 1s ) {
+                // You are extending the lifetime of the object artificially
+                set beresp.ttl   = 300s;
+                set beresp.grace = 300s;
+                set beresp.http.X-Cacheable = "YES:Forced";
+        }  else {
+                // Varnish determined the object was cacheable
+                set beresp.http.X-Cacheable = "YES";
+        }
+        return(deliver);
+}</pre>
+<p>4. Set apache to listen on port 8008:</p>
+<pre>vim /etc/apache2/ports.conf
+
+NameVirtualHost *:8008
+Listen 8008</pre>
+<p>5. Set all vhosts to listen on port 8008:</p>
+<pre>vim /etc/apache2/sites-enabled/000-default
+&lt;Virtualhost *:8008&gt;
+ ...
+&lt;/Virtualhost&gt;</pre>
+<p>Do the same for all other vhosts.</p>
+<p>6. Restart Apache and Varnish:</p>
+<pre>service apache2 restart
+service varnish restart</pre>
+<p>7. Test varnish:</p>
+<pre>curl -I http://www.euperia.com/linux/setting-up-varnish-with-apache-tutorial/
+
+HTTP/1.1 200 OK
+Server: Apache
+X-Pingback: http://www.euperia.com/xmlrpc.php
+Link: <http: //www.euperia.com/?p=299>; rel=shortlink
+Vary: Accept-Encoding,User-Agent
+Content-Type: text/html; charset=UTF-8
+X-Cacheable: YES
+Content-Length: 22992
+Date: Wed, 05 Jan 2011 22:01:22 GMT
+X-Varnish: 769719461 769719459
+Age: 7
+Via: 1.1 varnish
+Connection: keep-alive</http:></pre>
+<p>Notice the Varnish headers?  There are also a couple of these. Age shows the age of the item in the Varnish cache.</p>
+											</div><!--end entry-->
+			<div class="meta clear">
+				<p>From &rarr; <a href="http://www.euperia.com/category/linux/" title="View all posts in Linux" rel="category tag">Linux</a></p>
+			</div><!--end meta-->
+		</div><!--end post-->
+			<!-- You can start editing here. -->
+<div id="comments">
+			<!-- If comments are open, but there are no comments. -->
+		<div class="comment-number">
+			<span>No comments yet</span>
+		</div>
+	 </div><!--end comments-->
+
+
+	<div id="respond">
+		<div class="cancel-comment-reply">
+			<small><a rel="nofollow" id="cancel-comment-reply-link" href="/linux/setting-up-varnish-with-apache-tutorial/#respond" style="display:none;">Click here to cancel reply.</a></small>
+		</div>
+		<h4 id="postcomment">Leave a Reply</h4>
+				<form action="http://www.euperia.com/wp-comments-post.php" method="post" id="commentform">
+							<fieldset>
+					<label for="author" class="comment-field"><small>Name: (required):</small></label>
+					<input class="text-input" type="text" name="author" id="author" value=""	tabindex="1" />
+				</fieldset>
+				<fieldset>
+					<label for="email" class="comment-field"><small>Email: (required):</small></label>
+					<input class="text-input" type="text" name="email" id="email" value="" tabindex="2" />
+				</fieldset>
+				<fieldset>
+					<label for="url" class="comment-field"><small>Website:</small></label>
+					<input class="text-input" type="text" name="url" id="url" value="" tabindex="3" />
+				</fieldset>
+						<fieldset>
+				<label for="comment" class="comment-field"><small>Comment:</small></label>
+				<textarea name="comment" id="comment" cols="50" rows="10" tabindex="4"></textarea>
+			</fieldset>
+			<p class="guidelines"><strong>Note:</strong> XHTML is allowed. Your email address will <strong>never</strong> be published.</p>
+			<p class="comments-rss"><a href='http://www.euperia.com/linux/setting-up-varnish-with-apache-tutorial/feed/'>Subscribe to this comment feed via RSS</a></p>
+						<fieldset>
+				<input name="submit" type="submit" id="submit" tabindex="5" value="Submit Comment" />
+				<input type="hidden" name="comment_post_ID" value="299" />
+			</fieldset>
+			<input type='hidden' name='comment_post_ID' value='299' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+		</form><!--end commentform-->
+	</div><!--end respond-->
+
+
+	</div><!--end content-->
+<div id="sidebar">
+			<div id="sidebox">
+							<h2 class="widgettitle">Shameless Ad Section</h2>
+<p>Please help to support the site by clicking these links before buying.</p>
+<iframe src="http://rcm-uk.amazon.co.uk/e/cm?t=euperiacom-21&o=2&p=8&l=as1&asins=B002LVUWFE&fc1=000000&IS2=1<1=_blank&m=amazon&lc1=0000FF&bc1=000000&bg1=FFFFFF&f=ifr" style="width:120px;height:240px;float:left;margin-right:4px" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe><iframe src="http://rcm-uk.amazon.co.uk/e/cm?t=euperiacom-21&o=2&p=8&l=as1&asins=B003DZ163O&fc1=000000&IS2=1<1=_blank&m=amazon&lc1=0000FF&bc1=000000&bg1=FFFFFF&f=ifr" style="width:120px;height:240px;" scrolling="no" marginwidth="0" marginheight="0" frameborder="0"></iframe>
+					</div><!--end sidebox-->
+			<ul>			<li id="recent-posts-3" class="widget widget_recent_entries">		<h2 class="widgettitle">Recent Posts</h2>		<ul>
+				<li><a href="http://www.euperia.com/tech-and-gadgets/hack-to-play-minesweeper-on-amazon-kindle/" title="Hack to play minesweeper on Amazon Kindle">Hack to play minesweeper on Amazon Kindle</a></li>
+				<li><a href="http://www.euperia.com/tech-and-gadgets/amazon-kindle-white-screen-of-death-issue-and-how-to-fix-it/" title="Amazon Kindle &#8216;white screen of death&#8217; issue (and how to fix it)">Amazon Kindle &#8216;white screen of death&#8217; issue (and how to fix it)</a></li>
+				<li><a href="http://www.euperia.com/linux/setting-up-varnish-with-apache-tutorial/" title="Tutorial: Setting up Varnish with Apache.">Tutorial: Setting up Varnish with Apache.</a></li>
+				<li><a href="http://www.euperia.com/uncategorized/portsmouth-tilt-shifted/" title="Portsmouth Tilt Shifted">Portsmouth Tilt Shifted</a></li>
+				<li><a href="http://www.euperia.com/development/constraining-resizable-textareas/" title="Constraining resizable textareas">Constraining resizable textareas</a></li>
+				<li><a href="http://www.euperia.com/development/php/php-warning-xdebug-must-be-loaded-as-a-zend-extension-in-unknown-on-line-0-fix/" title="PHP Warning:  Xdebug MUST be loaded as a Zend extension in Unknown on line 0 Fix">PHP Warning:  Xdebug MUST be loaded as a Zend extension in Unknown on line 0 Fix</a></li>
+				<li><a href="http://www.euperia.com/development/netbeans-tip-mouse-wheel-on-open-files/" title="Netbeans Tip: Mouse-wheel on open files">Netbeans Tip: Mouse-wheel on open files</a></li>
+				<li><a href="http://www.euperia.com/linux/netbeans-php-autocomplete-stopped/" title="Netbeans PHP Autocomplete stopped">Netbeans PHP Autocomplete stopped</a></li>
+				<li><a href="http://www.euperia.com/development/10-things-a-programmer-needs-to-be/" title="10 Things a programmer needs to be">10 Things a programmer needs to be</a></li>
+				<li><a href="http://www.euperia.com/linux/cli-autologin-and-autostart-a-program-with-ubuntu-9-10-karmik/" title="CLI Autologin and autostart a program with Ubuntu 9.10 karmik">CLI Autologin and autostart a program with Ubuntu 9.10 karmik</a></li>
+				</ul>
+		</li><li id="search-3" class="widget widget_search"><form method="get" id="search_form" action="http://www.euperia.com/">
+	<div>
+		<input type="text" name="s" id="s" class="search"/>
+		<input type="submit" id="searchsubmit" value="Search" />
+	</div>
+</form>
+</li><li id="categories-418885182" class="widget widget_categories"><h2 class="widgettitle">Categories</h2>		<ul>
+	<li class="cat-item cat-item-3"><a href="http://www.euperia.com/category/development/" title="View all posts filed under Development">Development</a>
+<ul class='children'>
+	<li class="cat-item cat-item-21"><a href="http://www.euperia.com/category/development/mysql/" title="View all posts filed under MySQL">MySQL</a>
+</li>
+	<li class="cat-item cat-item-4"><a href="http://www.euperia.com/category/development/php/" title="View all posts filed under PHP">PHP</a>
+	<ul class='children'>
+	<li class="cat-item cat-item-18"><a href="http://www.euperia.com/category/development/php/imagemagick/" title="View all posts filed under ImageMagick">ImageMagick</a>
+</li>
+	<li class="cat-item cat-item-17"><a href="http://www.euperia.com/category/development/php/zend-framework/" title="View all posts filed under Zend Framework">Zend Framework</a>
+</li>
+	</ul>
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-8"><a href="http://www.euperia.com/category/linux/" title="View all posts filed under Linux">Linux</a>
+<ul class='children'>
+	<li class="cat-item cat-item-9"><a href="http://www.euperia.com/category/linux/tools-and-utilities/" title="View all posts filed under Tools and utilities">Tools and utilities</a>
+</li>
+</ul>
+</li>
+	<li class="cat-item cat-item-6"><a href="http://www.euperia.com/category/music/" title="View all posts filed under Music">Music</a>
+</li>
+	<li class="cat-item cat-item-40"><a href="http://www.euperia.com/category/tech-and-gadgets/" title="Articles about technology and gadgets.  From the Amazon Kindle to the Nintendo Wii, you&#039;ll find things about them here.">Tech and Gadgets</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://www.euperia.com/category/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a>
+</li>
+		</ul>
+</li><li id="linkcat-2" class="widget widget_links"><h2 class="widgettitle">Blogroll</h2>
+	<ul class='xoxo blogroll'>
+<li><a href="http://www.djdownload.com" rel="acquaintance" title="Up to date dance music in DRM-FREE MP3 Format" target="_blank">djdownload.com</a></li>
+<li><a href="http://www.iweb.co.uk" title="Web Innovative and affordable Web solutions. Specialising in Web Site Design, E-commerce Web Sites, Website Development, CD Rom Authoring." target="_blank">iWeb Solutions</a></li>
+<li><a href="http://insom.me.uk/" rel="friend met co-worker colleague" title="blue in the presence of base" target="_blank">Virtual Vitriol</a></li>
+<li><a href="http://www.yourdesign.co.uk" title="Get personalised mugs, t-shirts, mouse mats and more!" target="_blank">Yourdesign Personalised Products</a></li>
+
+	</ul>
+</li>
+	</ul></div><!--end sidebar--></div><!--end wrapper-->
+</div><!--end content-background-->
+<div id="footer">
+	<div class="wrapper clear">
+		<div id="footer-about" class="footer-column">
+			<h2>About</h2>
+							<p>I’m Andrew McCombe and this is my personal blog where I write about things that interest me or things that I would like to keep a record of.</p>
+					</div>
+		<div id="footer-flickr" class="footer-column">
+							<ul>
+											<li class="widget widget_categories">
+							<h2 class="widgettitle">Categories</h2>
+							<ul>
+									<li class="cat-item cat-item-3"><a href="http://www.euperia.com/category/development/" title="View all posts filed under Development">Development</a>
+</li>
+	<li class="cat-item cat-item-18"><a href="http://www.euperia.com/category/development/php/imagemagick/" title="View all posts filed under ImageMagick">ImageMagick</a>
+</li>
+	<li class="cat-item cat-item-8"><a href="http://www.euperia.com/category/linux/" title="View all posts filed under Linux">Linux</a>
+</li>
+	<li class="cat-item cat-item-6"><a href="http://www.euperia.com/category/music/" title="View all posts filed under Music">Music</a>
+</li>
+	<li class="cat-item cat-item-21"><a href="http://www.euperia.com/category/development/mysql/" title="View all posts filed under MySQL">MySQL</a>
+</li>
+	<li class="cat-item cat-item-4"><a href="http://www.euperia.com/category/development/php/" title="View all posts filed under PHP">PHP</a>
+</li>
+	<li class="cat-item cat-item-40"><a href="http://www.euperia.com/category/tech-and-gadgets/" title="Articles about technology and gadgets.  From the Amazon Kindle to the Nintendo Wii, you&#039;ll find things about them here.">Tech and Gadgets</a>
+</li>
+	<li class="cat-item cat-item-9"><a href="http://www.euperia.com/category/linux/tools-and-utilities/" title="View all posts filed under Tools and utilities">Tools and utilities</a>
+</li>
+	<li class="cat-item cat-item-1"><a href="http://www.euperia.com/category/uncategorized/" title="View all posts filed under Uncategorized">Uncategorized</a>
+</li>
+	<li class="cat-item cat-item-17"><a href="http://www.euperia.com/category/development/php/zend-framework/" title="View all posts filed under Zend Framework">Zend Framework</a>
+</li>
+							</ul>
+						</li>
+									</ul>
+					</div>
+		<div id="footer-search" class="footer-column">
+			<h2>Search</h2>
+			<form method="get" id="search_form" action="http://www.euperia.com/">
+	<div>
+		<input type="text" name="s" id="s" class="search"/>
+		<input type="submit" id="searchsubmit" value="Search" />
+	</div>
+</form>
+		</div>
+		<div id="copyright">
+			<p class="copyright-notice">Copyright &copy; 2011 Copyright Andrew McCombe. <a href="http://thethemefoundry.com/titan/">Titan Theme</a> by <a href="http://thethemefoundry.com">The Theme Foundry</a>.</p>
+		</div><!--end copyright-->
+	</div><!--end wrapper-->
+</div><!--end footer-->
+<script type="text/javascript"><!--
+ amzn_cl_tag="euperiacom-21";
+ amzn_cl_link_color="C53119";
+ amzn_cl_border_color="443B31";
+ amzn_cl_link_style=1;
+ amzn_cl_average_customer_rating=0;
+ amzn_cl_product_link_color="4265A7";
+ amzn_cl_exact_match=1;
+ amzn_cl_categories="a,b,d,e,f";
+//--></script>
+<script type="text/javascript" src="http://cls.assoc-amazon.com/s/cls.js"></script><script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-12951366-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script></body>
+</html><!-- WP Super Cache is installed but broken. The path to wp-cache-phase1.php in wp-content/advanced-cache.php must be fixed! -->
